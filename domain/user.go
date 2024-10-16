@@ -67,6 +67,30 @@ type UserCreate struct {
 	Salt      string   `json:"-"`
 }
 
+type UserUpdate struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
+func (u *UserUpdate) Validate() error {
+	var validationErrors []string
+	if u.FirstName == "" {
+		validationErrors = append(validationErrors, "first name can not be null")
+	}
+	if u.LastName == "" {
+		validationErrors = append(validationErrors, "last name can not be null")
+	}
+
+	if len(validationErrors) > 0 {
+		return errors.New(strings.Join(validationErrors, "; "))
+	}
+
+	return nil
+}
+
+func (UserUpdate) TableName() string {
+	return User{}.TableName()
+}
 func (UserCreate) TableName() string {
 	return User{}.TableName()
 }

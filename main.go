@@ -34,12 +34,16 @@ const (
 	Done
 )
 
+// @securityDefinitions.apikey BearerAuth
+// @in            header
+// @name          Authorization
 func main() {
 	godotenv.Load()
 	db, err := gorm.Open(postgres.Open(os.Getenv("CONNECTION_STRING")), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err)
 	}
+	// db.AutoMigrate(&domain.Item{}, &domain.User{})
 
 	r := gin.Default()
 	r.Use(middleware.Recover())
@@ -68,7 +72,7 @@ func main() {
 	middlewareRateLimit := middleware.RateLimiter(limiter)
 
 	restApi.NewItemHandler(apiVersion, itemService, middlewareAuth, middlewareRateLimit)
-	restApi.NewUserHandler(apiVersion, userService)
+	restApi.NewUserHandler(apiVersion, userService, middlewareAuth)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

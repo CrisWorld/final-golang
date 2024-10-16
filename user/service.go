@@ -13,6 +13,7 @@ import (
 type UserRepo interface {
 	Save(user *domain.UserCreate) error
 	GetUser(conditions map[string]any) (*domain.User, error)
+	UpdateUser(conditions map[string]any, user *domain.UserUpdate) error
 }
 
 type Hasher interface {
@@ -88,4 +89,26 @@ func (s *userService) Login(data *domain.UserLogin) (tokenprovider.Token, error)
 	}
 
 	return accessToken, nil
+}
+
+func (s *userService) UpdateUser(data *domain.UserUpdate, id uuid.UUID) error {
+	if err := data.Validate(); err != nil {
+		return clients.ErrInvalidRequest(err)
+	}
+
+	if err := s.userRepo.UpdateUser(map[string]interface{}{"id": id}, data); err != nil {
+		return clients.ErrCannotUpdateEntity(data.TableName(), err)
+	}
+
+	return nil
+}
+
+func (s *userService) GetUserByID(id uuid.UUID) (*domain.User, error) {
+
+	user, err := s.userRepo.GetUser(map[string]interface{}{"id": id})
+	if err != nil {
+		return nil, clients.ErrCannotGetEntity("user", err)
+	}
+
+	return user, nil
 }
